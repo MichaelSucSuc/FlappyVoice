@@ -31,7 +31,6 @@
             width: 100%;
         }
 
-        /* Navegación de pestañas */
         .tabs {
             display: flex;
             gap: 10px;
@@ -68,7 +67,6 @@
             transform: none;
         }
 
-        /* Paneles */
         .panel {
             display: none;
         }
@@ -77,7 +75,6 @@
             display: block;
         }
 
-        /* Canvas del juego */
         canvas {
             display: block;
             margin: 0 auto;
@@ -237,10 +234,21 @@
             margin-bottom: 20px;
         }
 
-        .progress-ring {
+        .timer-ring {
             width: 120px;
             height: 120px;
             margin: 20px auto;
+            position: relative;
+        }
+
+        .timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
         }
 
         .calibration-success {
@@ -260,23 +268,24 @@
             margin-top: 12px;
         }
 
-        .locked-message {
-            text-align: center;
-            padding: 40px;
-            color: #8ba9b5;
+        .status-msg {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 30px;
+            font-size: 0.9rem;
         }
 
-        h3 {
-            color: white;
-            margin-bottom: 15px;
-        }
+        .status-msg.waiting { background: #2e5f6b; }
+        .status-msg.recording { background: #ff9800; color: #1e2f3a; }
+        .status-msg.success { background: #2e7d32; }
+        .status-msg.error { background: #c62828; }
     </style>
 </head>
 <body>
 <div class="app-container">
-    <!-- Pestañas de navegación -->
+    <!-- Pestañas -->
     <div class="tabs">
-        <button class="tab-btn" id="tabCalibrateBtn">🎚️ 1. CALIBRACIÓN DE VOZ</button>
+        <button class="tab-btn active" id="tabCalibrateBtn">🎚️ 1. CALIBRACIÓN DE VOZ</button>
         <button class="tab-btn" id="tabPlayBtn" disabled>🎮 2. JUGAR</button>
     </div>
 
@@ -299,15 +308,18 @@
             <div id="calibrationReading" style="display: none;">
                 <div class="freq-display" id="calFreqDisplay">--- Hz</div>
                 <div class="note-display" id="calNoteDisplay">---</div>
-                <div class="progress-ring">
-                    <svg width="100" height="100" viewBox="0 0 100 100">
-                        <circle cx="50" cy="50" r="45" fill="none" stroke="#333" stroke-width="8"/>
-                        <circle id="calProgressCircle" cx="50" cy="50" r="45" fill="none" stroke="#4caf50" stroke-width="8" 
-                                stroke-dasharray="283" stroke-dashoffset="283" stroke-linecap="round"
-                                transform="rotate(-90 50 50)"/>
+                
+                <div class="timer-ring">
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="52" fill="none" stroke="#333" stroke-width="8"/>
+                        <circle id="timerCircle" cx="60" cy="60" r="52" fill="none" stroke="#4caf50" stroke-width="8" 
+                                stroke-dasharray="327" stroke-dashoffset="327" stroke-linecap="round"
+                                transform="rotate(-90 60 60)"/>
                     </svg>
+                    <div class="timer-text" id="timerText">0.0</div>
                 </div>
-                <div id="calibrationStatus" style="font-size: 0.9rem; color: #ffd966;">🎵 Esperando señal de voz...</div>
+                
+                <div id="calibrationStatusMsg" class="status-msg waiting">🎵 Esperando señal de voz...</div>
             </div>
 
             <button id="calibrateBtn" class="btn-warning" disabled style="margin-top: 20px;">🎚️ CALIBRAR (canta una nota)</button>
@@ -317,9 +329,9 @@
         <div class="warning-text">
             💡 INSTRUCCIONES:<br>
             1. Haz clic en "INICIAR MICRÓFONO" y acepta el permiso<br>
-            2. Canta o hum una nota constante durante 2-3 segundos<br>
-            3. El sistema detectará automáticamente tu rango de voz<br>
-            4. Una vez calibrado, podrás acceder al juego
+            2. Haz clic en "CALIBRAR" y canta una nota constante<br>
+            3. Mantén la nota durante 2 segundos<br>
+            4. ¡Listo! Podrás acceder al juego
         </div>
     </div>
 
@@ -365,45 +377,42 @@
         const resetGameBtn = document.getElementById('resetGameBtn');
         const recalibrateBtn = document.getElementById('recalibrateBtn');
 
-        // Elementos de calibración
         const calMicDot = document.getElementById('calMicDot');
         const calMicText = document.getElementById('calMicText');
         const calVolumeFill = document.getElementById('calVolumeFill');
         const calibrationReading = document.getElementById('calibrationReading');
         const calFreqDisplay = document.getElementById('calFreqDisplay');
         const calNoteDisplay = document.getElementById('calNoteDisplay');
-        const calProgressCircle = document.getElementById('calProgressCircle');
-        const calibrationStatus = document.getElementById('calibrationStatus');
-        const calibrationResult = document.getElementById('calibrationResult');
+        const timerCircle = document.getElementById('timerCircle');
+        const timerText = document.getElementById('timerText');
+        const calibrationStatusMsg = document.getElementById('calibrationStatusMsg');
+        const calibrationResultDiv = document.getElementById('calibrationResult');
 
-        // Elementos del juego
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const noteLabel = document.getElementById('noteLabel');
         const freqLabel = document.getElementById('freqLabel');
         const scoreLabel = document.getElementById('scoreLabel');
         const collisionLabel = document.getElementById('collisionLabel');
-        const gameMicDot = document.getElementById('gameMicDot');
-        const gameMicText = document.getElementById('gameMicText');
         const gameVolumeFill = document.getElementById('gameVolumeFill');
 
-        // ---------- VARIABLES GLOBALES ----------
+        // ---------- VARIABLES DE AUDIO ----------
         let mediaStream = null;
         let audioContext = null;
-        let sourceNode = null;
         let analyserNode = null;
         let isMicActive = false;
         let pitchDetectionId = null;
 
-        // Datos de calibración
+        // Variables de calibración
         let calibratedMinFreq = null;
         let calibratedMaxFreq = null;
         let isCalibrated = false;
         let calibrationBuffer = [];
-        let calibrationStartTime = 0;
-        let isCollectingCalibration = false;
+        let isRecording = false;
+        let recordingTimeout = null;
+        let recordingStartTime = 0;
 
-        // Datos de juego
+        // Variables del juego
         let currentVoiceFreq = 200;
         let currentVolume = 0;
         let score = 0;
@@ -417,7 +426,7 @@
         let spawnGap = 85;
         let baseSpeed = 2.2;
 
-        // ---------- DETECCIÓN DE PITCH (AUTOCORRELACIÓN) ----------
+        // ---------- DETECCIÓN DE PITCH ----------
         function autoCorrelate(buffer, sampleRate) {
             let size = buffer.length;
             let maxSamples = Math.floor(size / 2);
@@ -458,7 +467,7 @@
             return null;
         }
 
-        // ---------- INICIAR MICRÓFONO (COMPARTIDO) ----------
+        // ---------- INICIAR MICRÓFONO ----------
         async function initMicrophone() {
             try {
                 if (mediaStream) {
@@ -485,7 +494,7 @@
                 analyserNode.fftSize = 4096;
                 analyserNode.smoothingTimeConstant = 0.7;
                 
-                sourceNode = audioContext.createMediaStreamSource(stream);
+                const sourceNode = audioContext.createMediaStreamSource(stream);
                 sourceNode.connect(analyserNode);
                 
                 if (audioContext.state === 'suspended') {
@@ -497,7 +506,7 @@
                 return true;
                 
             } catch (error) {
-                console.error('Error al acceder al micrófono:', error);
+                console.error('Error:', error);
                 isMicActive = false;
                 return false;
             }
@@ -529,12 +538,12 @@
                     }
                 }
                 
-                // Actualizar UI de volumen según qué panel esté activo
-                updateVolumeUI();
+                // Actualizar UI según panel activo
+                updateUI();
                 
-                // Si estamos en modo calibración y recolectando datos
-                if (isCollectingCalibration && currentVolume > 0.05 && currentVoiceFreq) {
-                    collectCalibrationData(currentVoiceFreq);
+                // Si estamos grabando para calibración, recolectar datos
+                if (isRecording && currentVolume > 0.03 && currentVoiceFreq) {
+                    collectCalibrationSample(currentVoiceFreq);
                 }
                 
                 pitchDetectionId = requestAnimationFrame(detectLoop);
@@ -543,7 +552,7 @@
             detectLoop();
         }
 
-        function updateVolumeUI() {
+        function updateUI() {
             const isCalibrationActive = calibrationPanel.classList.contains('active');
             
             if (isCalibrationActive) {
@@ -554,7 +563,7 @@
                 }
             } else {
                 gameVolumeFill.style.width = (currentVolume * 100) + '%';
-                if (isMicActive) {
+                if (isMicActive && isCalibrated) {
                     freqLabel.innerHTML = Math.floor(currentVoiceFreq) + " Hz";
                     noteLabel.innerHTML = freqToNote(currentVoiceFreq);
                     updateBirdYFromFreq(currentVoiceFreq);
@@ -586,16 +595,15 @@
             
             calibrationReading.style.display = "block";
             calibrateBtn.disabled = false;
-            calibrationStatus.innerHTML = "🎵 ¡Canta una nota cómoda y mantenla constante!";
-            calibrationResult.innerHTML = "";
-            calibrationBuffer = [];
-            isCollectingCalibration = false;
+            calibrationStatusMsg.className = "status-msg waiting";
+            calibrationStatusMsg.innerHTML = "🎵 Haz clic en 'CALIBRAR' y canta una nota constante";
+            calibrationResultDiv.innerHTML = "";
         }
 
         function updateCalMicUI(active) {
             if (active) {
                 calMicDot.classList.add('active');
-                calMicText.innerHTML = '🎙️ Micrófono ACTIVO - Canta una nota';
+                calMicText.innerHTML = '🎙️ Micrófono ACTIVO';
                 startMicCalBtn.disabled = true;
                 startMicCalBtn.textContent = '✅ MICRÓFONO ACTIVO';
             } else {
@@ -606,79 +614,121 @@
             }
         }
 
-        function collectCalibrationData(freq) {
-            calibrationBuffer.push(freq);
-            
-            // Mostrar progreso visual
-            let duration = Math.min(2, calibrationBuffer.length / 30);
-            let progress = (duration / 2) * 283;
-            calProgressCircle.setAttribute('stroke-dashoffset', 283 - progress);
-            
-            if (calibrationBuffer.length >= 60 && !isCollectingCalibration) {
-                // Suficientes muestras (2 segundos a ~30fps)
-                finalizeCalibration();
-            }
-        }
-
-        async function finalizeCalibration() {
-            isCollectingCalibration = false;
-            
-            if (calibrationBuffer.length < 30) {
-                calibrationStatus.innerHTML = "❌ No se detectó suficiente voz. Intenta cantar más fuerte o constante.";
+        function startRecording() {
+            if (!isMicActive) {
+                calibrationStatusMsg.className = "status-msg error";
+                calibrationStatusMsg.innerHTML = "❌ Activa el micrófono primero";
                 return;
             }
             
-            // Calcular promedio y desviación
-            let sum = calibrationBuffer.reduce((a, b) => a + b, 0);
-            let avg = sum / calibrationBuffer.length;
+            if (currentVolume < 0.03) {
+                calibrationStatusMsg.className = "status-msg error";
+                calibrationStatusMsg.innerHTML = "❌ No detecto tu voz. ¡Canta más fuerte!";
+                setTimeout(() => {
+                    if (!isRecording) {
+                        calibrationStatusMsg.className = "status-msg waiting";
+                        calibrationStatusMsg.innerHTML = "🎵 Haz clic en 'CALIBRAR' y canta una nota constante";
+                    }
+                }, 2000);
+                return;
+            }
             
-            // Encontrar mínimo y máximo estable
+            // Iniciar grabación
+            calibrationBuffer = [];
+            isRecording = true;
+            recordingStartTime = Date.now();
+            
+            calibrationStatusMsg.className = "status-msg recording";
+            calibrationStatusMsg.innerHTML = "🔴 Grabando... ¡Mantén la nota!";
+            
+            // Configurar timer de 2 segundos
+            if (recordingTimeout) clearTimeout(recordingTimeout);
+            
+            const interval = setInterval(() => {
+                if (!isRecording) {
+                    clearInterval(interval);
+                    return;
+                }
+                const elapsed = (Date.now() - recordingStartTime) / 1000;
+                const remaining = Math.max(0, 2 - elapsed);
+                timerText.textContent = remaining.toFixed(1);
+                
+                const circumference = 327;
+                const progress = (elapsed / 2) * circumference;
+                timerCircle.setAttribute('stroke-dashoffset', circumference - Math.min(circumference, progress));
+                
+                if (elapsed >= 2) {
+                    clearInterval(interval);
+                    finalizeCalibration();
+                }
+            }, 50);
+            
+            recordingTimeout = setTimeout(() => {
+                if (isRecording) {
+                    finalizeCalibration();
+                }
+            }, 2100);
+        }
+
+        function collectCalibrationSample(freq) {
+            if (isRecording) {
+                calibrationBuffer.push(freq);
+            }
+        }
+
+        function finalizeCalibration() {
+            if (recordingTimeout) clearTimeout(recordingTimeout);
+            
+            if (!isRecording) return;
+            isRecording = false;
+            
+            if (calibrationBuffer.length < 20) {
+                calibrationStatusMsg.className = "status-msg error";
+                calibrationStatusMsg.innerHTML = "❌ No se detectó suficiente voz. Intenta cantar más fuerte y constante.";
+                timerText.textContent = "0.0";
+                timerCircle.setAttribute('stroke-dashoffset', 327);
+                return;
+            }
+            
+            // Calcular estadísticas
             let sorted = [...calibrationBuffer].sort((a, b) => a - b);
             let min = sorted[Math.floor(sorted.length * 0.1)];
             let max = sorted[Math.floor(sorted.length * 0.9)];
+            let avg = calibrationBuffer.reduce((a, b) => a + b, 0) / calibrationBuffer.length;
             
             // Establecer rango calibrado
-            calibratedMinFreq = Math.max(75, min - 20);
-            calibratedMaxFreq = Math.min(600, max + 30);
+            calibratedMinFreq = Math.max(75, min - 15);
+            calibratedMaxFreq = Math.min(600, max + 25);
             
             if (calibratedMaxFreq - calibratedMinFreq < 40) {
-                calibratedMinFreq = Math.max(75, avg - 40);
-                calibratedMaxFreq = Math.min(600, avg + 50);
+                calibratedMinFreq = Math.max(75, avg - 35);
+                calibratedMaxFreq = Math.min(600, avg + 45);
             }
             
             isCalibrated = true;
             
-            calibrationResult.innerHTML = `
+            calibrationStatusMsg.className = "status-msg success";
+            calibrationStatusMsg.innerHTML = "✅ ¡Calibración completada!";
+            
+            calibrationResultDiv.innerHTML = `
                 <div class="calibration-success">
                     ✅ ¡CALIBRACIÓN EXITOSA!<br>
                     Rango grave: ${Math.floor(calibratedMinFreq)} Hz<br>
                     Rango agudo: ${Math.floor(calibratedMaxFreq)} Hz<br>
                     Nota media: ${freqToNote(avg)} (${Math.floor(avg)} Hz)<br><br>
-                    <strong>¡Ya puedes jugar!</strong>
+                    <strong>🎮 ¡Ya puedes pasar a JUGAR!</strong>
                 </div>
             `;
             
-            calibrationStatus.innerHTML = "✅ Calibración completada. Ve a la pestaña JUGAR.";
             calibrateBtn.disabled = true;
+            calibrateBtn.textContent = '✅ CALIBRADO';
             
             // Habilitar pestaña de juego
             tabPlayBtn.disabled = false;
             
-            // Guardar calibración en localStorage para referencia
+            // Guardar calibración
             localStorage.setItem('voiceMin', calibratedMinFreq);
             localStorage.setItem('voiceMax', calibratedMaxFreq);
-        }
-
-        async function performCalibration() {
-            if (!isMicActive) {
-                await startCalibration();
-                return;
-            }
-            
-            calibrationBuffer = [];
-            isCollectingCalibration = true;
-            calibrationStatus.innerHTML = "🎤 ¡Excelente! Mantén la nota constante...";
-            calProgressCircle.setAttribute('stroke-dashoffset', 283);
         }
 
         // ---------- FUNCIONES DEL JUEGO ----------
@@ -715,7 +765,6 @@
             bird.y = Math.min(canvas.height - bird.radius - 8, bird.y + 15);
             if (score > 0) score = Math.max(0, score - 2);
             updateGameUI();
-            if (navigator.vibrate) navigator.vibrate(60);
         }
 
         function updateGameUI() {
@@ -850,7 +899,7 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // ---------- MANEJAR CAMBIO DE PESTAÑAS ----------
+        // ---------- NAVEGACIÓN ----------
         function switchToCalibration() {
             calibrationPanel.classList.add('active');
             gamePanel.classList.remove('active');
@@ -860,7 +909,7 @@
 
         function switchToGame() {
             if (!isCalibrated) {
-                alert("⚠️ Primero debes calibrar tu voz en la pestaña de CALIBRACIÓN");
+                alert("⚠️ Primero debes calibrar tu voz.\n\n1. Ve a la pestaña CALIBRACIÓN\n2. Inicia el micrófono\n3. Haz clic en CALIBRAR y canta una nota durante 2 segundos");
                 return;
             }
             
@@ -868,12 +917,6 @@
             gamePanel.classList.add('active');
             tabCalibrateBtn.classList.remove('active');
             tabPlayBtn.classList.add('active');
-            
-            // Asegurar que el micrófono siga activo para el juego
-            if (isMicActive) {
-                gameMicDot.classList.add('active');
-                gameMicText.innerHTML = '🎙️ Micrófono activo - Jugando';
-            }
             
             resetGame();
         }
@@ -883,17 +926,25 @@
             calibratedMinFreq = null;
             calibratedMaxFreq = null;
             tabPlayBtn.disabled = true;
-            switchToCalibration();
-            calibrationResult.innerHTML = "";
+            calibrationResultDiv.innerHTML = "";
             calibrationReading.style.display = "none";
             calibrateBtn.disabled = true;
-            calibrationStatus.innerHTML = "🎵 Haz clic en 'INICIAR MICRÓFONO' para empezar";
-            updateCalMicUI(isMicActive);
+            calibrateBtn.textContent = "🎚️ CALIBRAR (canta una nota)";
+            calibrationStatusMsg.className = "status-msg waiting";
+            calibrationStatusMsg.innerHTML = "🎵 Haz clic en 'CALIBRAR' y canta una nota constante";
+            timerText.textContent = "0.0";
+            timerCircle.setAttribute('stroke-dashoffset', 327);
+            switchToCalibration();
+            
+            if (isMicActive) {
+                calibrateBtn.disabled = false;
+                calibrationReading.style.display = "block";
+            }
         }
 
         // ---------- EVENTOS ----------
         startMicCalBtn.addEventListener('click', startCalibration);
-        calibrateBtn.addEventListener('click', performCalibration);
+        calibrateBtn.addEventListener('click', startRecording);
         tabCalibrateBtn.addEventListener('click', switchToCalibration);
         tabPlayBtn.addEventListener('click', switchToGame);
         resetGameBtn.addEventListener('click', resetGame);
@@ -905,4 +956,4 @@
     })();
 </script>
 </body>
-</html>
+</html>/html>
