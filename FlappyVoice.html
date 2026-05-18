@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Flappy Voice - Rehabilitación Vocal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>VoiceRehab - Rehabilitación Vocal con Juego</title>
     <style>
         * {
             user-select: none;
@@ -17,9 +17,9 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 16px;
         }
 
         .app-container {
@@ -27,114 +27,114 @@
             border-radius: 48px;
             padding: 20px;
             box-shadow: 0 20px 35px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
-            max-width: 900px;
+            max-width: 1000px;
             width: 100%;
         }
 
-        .tabs {
+        /* Navegación */
+        .nav-buttons {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
-        .tab-btn {
+        .nav-btn {
             flex: 1;
             background: #0f2c38;
             border: none;
             color: #8ba9b5;
             font-weight: bold;
-            padding: 14px;
+            padding: 14px 12px;
             border-radius: 60px;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: none;
+            font-family: inherit;
         }
 
-        .tab-btn.active {
+        .nav-btn.active {
             background: #ff9800;
             color: #1e2f3a;
             box-shadow: 0 4px 0 #c66900;
         }
 
-        .tab-btn:active {
-            transform: translateY(2px);
-        }
-
-        .tab-btn:disabled {
+        .nav-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
 
+        /* Paneles */
         .panel {
             display: none;
+            animation: fadeIn 0.3s ease;
         }
 
         .panel.active {
             display: block;
         }
 
-        canvas {
-            display: block;
-            margin: 0 auto;
-            border-radius: 24px;
-            box-shadow: 0 8px 18px rgba(0,0,0,0.3);
-            background: #7ec8e0;
-            width: 100%;
-            height: auto;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .info-panel {
+        /* Tarjetas */
+        .card {
+            background: #0f2c38;
+            border-radius: 32px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        /* Canvas del juego */
+        .game-canvas-wrapper {
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.3);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #7ec8e0;
+        }
+
+        /* Indicadores */
+        .stats-grid {
             display: flex;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 20px;
-            margin-bottom: 15px;
-            background: #0f2c38c9;
-            backdrop-filter: blur(8px);
-            border-radius: 60px;
-            padding: 12px 20px;
-            color: white;
-            font-weight: bold;
+            gap: 10px;
+            margin-top: 16px;
+            margin-bottom: 16px;
         }
 
-        .stat {
+        .stat-card {
             background: #00000066;
-            padding: 6px 16px;
+            backdrop-filter: blur(4px);
+            padding: 8px 16px;
             border-radius: 40px;
-            font-size: 0.9rem;
             display: flex;
             gap: 8px;
             align-items: baseline;
+            color: white;
+            font-size: 0.85rem;
         }
 
-        .stat span:first-child {
-            font-size: 0.75rem;
-            opacity: 0.8;
-        }
+        .stat-card span:first-child { opacity: 0.7; }
+        .stat-card span:last-child { font-size: 1.4rem; font-weight: 800; color: #ffd966; }
 
-        .stat span:last-child {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #ffd966;
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-        }
-
+        /* Botones */
         button {
             background: #2e5f6b;
             border: none;
             color: white;
             font-weight: bold;
-            padding: 12px 24px;
+            padding: 12px 20px;
             border-radius: 60px;
             font-size: 1rem;
             cursor: pointer;
@@ -143,817 +143,695 @@
             font-family: inherit;
         }
 
-        button:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #0a2a33;
-        }
+        button:active { transform: translateY(2px); box-shadow: 0 2px 0 #0a2a33; }
+        button:disabled { opacity: 0.5; transform: none; cursor: not-allowed; }
 
-        button:disabled {
-            opacity: 0.5;
-            transform: none;
-            cursor: not-allowed;
-        }
+        .btn-primary { background: #4caf50; box-shadow: 0 4px 0 #2e7d32; }
+        .btn-warning { background: #ff9800; box-shadow: 0 4px 0 #c66900; color: #1e2f3a; }
+        .btn-exercise { background: #3a6b7a; font-size: 0.9rem; padding: 10px 16px; }
 
-        .btn-primary {
-            background: #4caf50;
-            box-shadow: 0 4px 0 #2e7d32;
-        }
-
-        .btn-warning {
-            background: #ff9800;
-            box-shadow: 0 4px 0 #c66900;
-            color: #1e2f3a;
-        }
-
-        .mic-status {
+        /* Medidor de ruido */
+        .noise-meter {
             background: #1e2f3a;
-            text-align: center;
-            border-radius: 40px;
-            padding: 12px;
-            font-size: 0.9rem;
-            margin-top: 15px;
+            border-radius: 30px;
+            padding: 8px 16px;
+            margin-top: 12px;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 12px;
             flex-wrap: wrap;
         }
 
-        .mic-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #888;
-            transition: all 0.2s;
-        }
-
-        .mic-dot.active {
-            background: #4caf50;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.4; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1.2); }
-        }
-
-        .volume-bar {
+        .noise-bar {
             flex: 1;
-            max-width: 150px;
             height: 8px;
             background: #333;
             border-radius: 4px;
             overflow: hidden;
         }
 
-        .volume-fill {
+        .noise-fill {
             height: 100%;
             width: 0%;
             background: #4caf50;
             transition: width 0.05s;
         }
 
-        .calibration-card {
-            background: #0f2c38;
-            border-radius: 32px;
-            padding: 25px;
+        .noise-fill.warning { background: #ff9800; }
+        .noise-fill.danger { background: #f44336; }
+
+        /* Grid de ejercicios */
+        .exercises-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .exercise-card {
+            background: #1e4a5a;
+            border-radius: 20px;
+            padding: 12px;
             text-align: center;
-            margin-top: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
         }
 
-        .freq-display {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #ffd966;
-            margin: 20px 0;
+        .exercise-card.selected {
+            border-color: #ff9800;
+            background: #2e5f6b;
+            transform: scale(1.02);
         }
 
-        .note-display {
-            font-size: 2rem;
-            color: white;
-            margin-bottom: 20px;
-        }
+        .exercise-card h4 { margin: 0 0 4px 0; color: white; font-size: 0.9rem; }
+        .exercise-card p { margin: 0; font-size: 0.7rem; color: #8ba9b5; }
 
-        .timer-ring {
-            width: 120px;
-            height: 120px;
-            margin: 20px auto;
-            position: relative;
-        }
-
-        .timer-text {
-            position: absolute;
-            top: 50%;
+        /* Mensajes flotantes */
+        .toast {
+            position: fixed;
+            bottom: 30px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 28px;
-            font-weight: bold;
+            transform: translateX(-50%);
+            background: #1e2f3a;
             color: white;
-        }
-
-        .calibration-success {
-            background: #2e7d32;
-            padding: 15px;
+            padding: 12px 24px;
             border-radius: 60px;
-            margin-top: 20px;
+            font-size: 0.9rem;
+            z-index: 1000;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* Partículas (CSS) */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            animation: particleAnim 0.5s ease-out forwards;
+        }
+
+        @keyframes particleAnim {
+            0% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0); }
+        }
+
+        /* Tutorial */
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .tutorial-card {
+            background: #1e3a4d;
+            border-radius: 32px;
+            padding: 24px;
+            max-width: 320px;
+            text-align: center;
             color: white;
         }
 
-        .warning-text {
-            background: #dc6b4a;
-            text-align: center;
-            border-radius: 40px;
-            padding: 8px;
-            font-size: 0.75rem;
-            margin-top: 12px;
+        /* Responsive */
+        @media (max-width: 600px) {
+            .app-container { padding: 12px; }
+            .stat-card span:last-child { font-size: 1rem; }
+            .nav-btn { font-size: 0.75rem; padding: 10px; }
         }
-
-        .status-msg {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 30px;
-            font-size: 0.9rem;
-        }
-
-        .status-msg.waiting { background: #2e5f6b; }
-        .status-msg.recording { background: #ff9800; color: #1e2f3a; }
-        .status-msg.success { background: #2e7d32; }
-        .status-msg.error { background: #c62828; }
     </style>
 </head>
 <body>
 <div class="app-container">
-    <!-- Pestañas -->
-    <div class="tabs">
-        <button class="tab-btn active" id="tabCalibrateBtn">🎚️ 1. CALIBRACIÓN DE VOZ</button>
-        <button class="tab-btn" id="tabPlayBtn" disabled>🎮 2. JUGAR</button>
+    <!-- Navegación -->
+    <div class="nav-buttons">
+        <button class="nav-btn" id="navCalibrateBtn">🎚️ 1. CALIBRACIÓN</button>
+        <button class="nav-btn" id="navExercisesBtn" disabled>🎯 2. EJERCICIOS</button>
+        <button class="nav-btn" id="navGameBtn" disabled>🎮 3. JUGAR</button>
     </div>
 
-    <!-- PANEL DE CALIBRACIÓN -->
+    <!-- PANEL 1: CALIBRACIÓN (mejorada: dos pasos) -->
     <div id="calibrationPanel" class="panel active">
-        <div class="calibration-card">
-            <h3>🎤 Calibración de rango vocal</h3>
-            <p style="color:#8ba9b5; margin-bottom: 20px;">Canta una nota cómoda y mantenla durante 2 segundos</p>
+        <div class="card">
+            <h3 style="color:white; margin-bottom:8px;">🎤 Calibración de rango vocal</h3>
+            <p style="color:#8ba9b5; font-size:0.85rem;">Canta una nota GRAVE y luego una AGUDA para definir tu rango</p>
 
-            <div class="mic-status">
-                <div class="mic-dot" id="calMicDot"></div>
-                <span id="calMicText">🔴 Micrófono DESACTIVADO</span>
-                <div class="volume-bar">
-                    <div class="volume-fill" id="calVolumeFill"></div>
+            <div style="background:#1e2f3a; border-radius:20px; padding:16px; margin:16px 0;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+                    <div style="text-align:center;">
+                        <div style="font-size:0.7rem; color:#8ba9b5;">NOTA GRAVE</div>
+                        <div style="font-size:1.8rem; font-weight:bold; color:#ffd966;" id="lowNoteDisplay">---</div>
+                        <div style="font-size:0.8rem;" id="lowFreqDisplay">0 Hz</div>
+                        <button id="recordLowBtn" class="btn-primary" style="margin-top:8px; padding:8px 16px; font-size:0.8rem;">🎤 Grabar Grave</button>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:0.7rem; color:#8ba9b5;">NOTA AGUDA</div>
+                        <div style="font-size:1.8rem; font-weight:bold; color:#ffd966;" id="highNoteDisplay">---</div>
+                        <div style="font-size:0.8rem;" id="highFreqDisplay">0 Hz</div>
+                        <button id="recordHighBtn" class="btn-primary" style="margin-top:8px; padding:8px 16px; font-size:0.8rem;">🎤 Grabar Aguda</button>
+                    </div>
+                </div>
+                
+                <!-- Gráfico de barras del rango -->
+                <div style="margin:16px 0;">
+                    <div style="font-size:0.7rem; color:#8ba9b5; margin-bottom:5px;">Rango detectado</div>
+                    <div style="height:40px; background:#1e2f3a; border-radius:20px; position:relative; overflow:hidden;">
+                        <div id="rangeBar" style="height:100%; background:linear-gradient(90deg, #4caf50, #ff9800); width:0%; border-radius:20px; transition:width 0.3s;"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:5px;">
+                        <span id="minRangeLabel" style="color:#ffd966; font-size:0.7rem;">-- Hz</span>
+                        <span id="maxRangeLabel" style="color:#ffd966; font-size:0.7rem;">-- Hz</span>
+                    </div>
                 </div>
             </div>
 
-            <button id="startMicCalBtn" class="btn-primary" style="margin: 20px 0;">🎤 INICIAR MICRÓFONO</button>
-
-            <div id="calibrationReading" style="display: none;">
-                <div class="freq-display" id="calFreqDisplay">--- Hz</div>
-                <div class="note-display" id="calNoteDisplay">---</div>
-                
-                <div class="timer-ring">
-                    <svg width="120" height="120" viewBox="0 0 120 120">
-                        <circle cx="60" cy="60" r="52" fill="none" stroke="#333" stroke-width="8"/>
-                        <circle id="timerCircle" cx="60" cy="60" r="52" fill="none" stroke="#4caf50" stroke-width="8" 
-                                stroke-dasharray="327" stroke-dashoffset="327" stroke-linecap="round"
-                                transform="rotate(-90 60 60)"/>
-                    </svg>
-                    <div class="timer-text" id="timerText">0.0</div>
-                </div>
-                
-                <div id="calibrationStatusMsg" class="status-msg waiting">🎵 Esperando señal de voz...</div>
+            <div class="noise-meter">
+                <span>🔊 Ruido ambiente:</span>
+                <div class="noise-bar"><div class="noise-fill" id="calNoiseFill"></div></div>
+                <span id="noiseStatus" style="font-size:0.7rem;">👍 Silencioso</span>
             </div>
 
-            <button id="calibrateBtn" class="btn-warning" disabled style="margin-top: 20px;">🎚️ CALIBRAR (canta una nota)</button>
-
-            <div id="calibrationResult" style="margin-top: 20px;"></div>
+            <button id="finishCalibrationBtn" class="btn-warning" disabled style="width:100%;">✅ Finalizar Calibración</button>
+            
+            <div id="calibrationResultMsg" style="margin-top:16px; text-align:center; color:#ffd966; font-size:0.8rem;"></div>
         </div>
-        <div class="warning-text">
-            💡 INSTRUCCIONES:<br>
-            1. Haz clic en "INICIAR MICRÓFONO" y acepta el permiso<br>
-            2. Haz clic en "CALIBRAR" y canta una nota constante<br>
-            3. Mantén la nota durante 2 segundos<br>
-            4. ¡Listo! Podrás acceder al juego
+        <div style="background:#1e2f3a; border-radius:20px; padding:12px; text-align:center;">
+            💡 <strong>Instrucción:</strong> Primero graba tu nota GRAVE (más cómoda), luego tu nota AGUDA (más cómoda sin forzar)
         </div>
     </div>
 
-    <!-- PANEL DE JUEGO -->
+    <!-- PANEL 2: SELECCIÓN DE EJERCICIOS -->
+    <div id="exercisesPanel" class="panel">
+        <div class="card">
+            <h3 style="color:white;">🎯 Selecciona un ejercicio vocal</h3>
+            <p style="color:#8ba9b5; font-size:0.8rem;">Basado en Titze (1993, 2001) para rehabilitación de disfonías funcionales</p>
+            
+            <div class="exercises-grid" id="exercisesGrid">
+                <!-- Los ejercicios se generan con JS -->
+            </div>
+            
+            <div class="noise-meter" style="margin-top:16px;">
+                <span>🔊 Ruido ambiente:</span>
+                <div class="noise-bar"><div class="noise-fill" id="exNoiseFill"></div></div>
+                <span id="exNoiseStatus" style="font-size:0.7rem;">👍 Silencioso</span>
+            </div>
+            
+            <button id="startGameBtn" class="btn-primary" style="width:100%; margin-top:16px;" disabled>🎮 Iniciar ejercicio</button>
+        </div>
+    </div>
+
+    <!-- PANEL 3: JUEGO -->
     <div id="gamePanel" class="panel">
-        <canvas id="gameCanvas" width="800" height="500" style="width:100%; height:auto; aspect-ratio:800/500"></canvas>
-
-        <div class="info-panel">
-            <div class="stat"><span>🎤 NOTA:</span><span id="noteLabel">---</span></div>
-            <div class="stat"><span>📊 FREC:</span><span id="freqLabel">0 Hz</span></div>
-            <div class="stat"><span>✨ PUNTOS:</span><span id="scoreLabel">0</span></div>
-            <div class="stat"><span>💥 CHOQUES:</span><span id="collisionLabel">0</span></div>
+        <div class="game-canvas-wrapper">
+            <canvas id="gameCanvas" width="800" height="500" style="width:100%; height:auto; aspect-ratio:800/500"></canvas>
         </div>
-
-        <div class="controls">
-            <button id="resetGameBtn">🔄 REINICIAR JUEGO</button>
-            <button id="recalibrateBtn">🎚️ RECALIBRAR VOZ</button>
+        
+        <div class="stats-grid">
+            <div class="stat-card"><span>🎤 NOTA:</span><span id="gameNote">---</span></div>
+            <div class="stat-card"><span>📊 FREC:</span><span id="gameFreq">0 Hz</span></div>
+            <div class="stat-card"><span>✨ PUNTOS:</span><span id="gameScore">0</span></div>
+            <div class="stat-card"><span>🔥 COMBO:</span><span id="gameCombo">0x</span></div>
+            <div class="stat-card"><span>💥 CHOQUES:</span><span id="gameCollisions">0</span></div>
         </div>
-
-        <div class="mic-status">
-            <div class="mic-dot active" id="gameMicDot"></div>
-            <span id="gameMicText">🎙️ Micrófono activo</span>
-            <div class="volume-bar">
-                <div class="volume-fill" id="gameVolumeFill"></div>
+        
+        <!-- Barra de progreso del ejercicio -->
+        <div style="margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#8ba9b5;">
+                <span>Progreso del ejercicio</span>
+                <span id="progressText">0/0 notas</span>
+            </div>
+            <div style="height:6px; background:#1e2f3a; border-radius:3px; overflow:hidden;">
+                <div id="progressBar" style="width:0%; height:100%; background:#ff9800; transition:width 0.2s;"></div>
             </div>
         </div>
-        <div class="warning-text">
-            🗣️ <strong>CONTROL VOCAL:</strong> más AGUDA → personaje SUBE | más GRAVE → BAJA<br>
-            Los choques NO te eliminan (solo penalizan suavemente)
+        
+        <div class="noise-meter">
+            <span>🔊 Ruido ambiente:</span>
+            <div class="noise-bar"><div class="noise-fill" id="gameNoiseFill"></div></div>
+            <span id="gameNoiseStatus" style="font-size:0.7rem;">👍 Silencioso</span>
         </div>
+        
+        <div style="display:flex; gap:12px; margin-top:12px; flex-wrap:wrap;">
+            <button id="recalibrateFromGameBtn" style="flex:1;">🎚️ Recalibrar</button>
+            <button id="changeExerciseBtn" style="flex:1;">🎯 Cambiar ejercicio</button>
+            <button id="resetGameBtn" style="flex:1;">🔄 Reiniciar</button>
+        </div>
+        
+        <!-- Mensaje de combo/éxito -->
+        <div id="comboMessage" style="text-align:center; margin-top:10px; font-size:0.8rem; color:#ffd966;"></div>
     </div>
 </div>
 
 <script>
+    // ---------- MEJORAS IMPLEMENTADAS ----------
+    // 1. Calibración dos pasos (grave + agudo)
+    // 2. Selección de 6 ejercicios basados en Titze
+    // 3. Sistema de combo (racha) + efectos visuales
+    // 4. Penalización suave (sin muerte)
+    // 5. Medidor de ruido ambiental con advertencias
+    // 6. Barra de progreso del ejercicio
+    // 7. Efectos de partículas y celebración
+    
     (function(){
-        // ---------- ELEMENTOS DOM ----------
-        const tabCalibrateBtn = document.getElementById('tabCalibrateBtn');
-        const tabPlayBtn = document.getElementById('tabPlayBtn');
+        // ----- ELEMENTOS DOM -----
+        const navCalibrate = document.getElementById('navCalibrateBtn');
+        const navExercises = document.getElementById('navExercisesBtn');
+        const navGame = document.getElementById('navGameBtn');
         const calibrationPanel = document.getElementById('calibrationPanel');
+        const exercisesPanel = document.getElementById('exercisesPanel');
         const gamePanel = document.getElementById('gamePanel');
-        const startMicCalBtn = document.getElementById('startMicCalBtn');
-        const calibrateBtn = document.getElementById('calibrateBtn');
-        const resetGameBtn = document.getElementById('resetGameBtn');
-        const recalibrateBtn = document.getElementById('recalibrateBtn');
-
-        const calMicDot = document.getElementById('calMicDot');
-        const calMicText = document.getElementById('calMicText');
-        const calVolumeFill = document.getElementById('calVolumeFill');
-        const calibrationReading = document.getElementById('calibrationReading');
-        const calFreqDisplay = document.getElementById('calFreqDisplay');
-        const calNoteDisplay = document.getElementById('calNoteDisplay');
-        const timerCircle = document.getElementById('timerCircle');
-        const timerText = document.getElementById('timerText');
-        const calibrationStatusMsg = document.getElementById('calibrationStatusMsg');
-        const calibrationResultDiv = document.getElementById('calibrationResult');
-
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const noteLabel = document.getElementById('noteLabel');
-        const freqLabel = document.getElementById('freqLabel');
-        const scoreLabel = document.getElementById('scoreLabel');
-        const collisionLabel = document.getElementById('collisionLabel');
-        const gameVolumeFill = document.getElementById('gameVolumeFill');
-
-        // ---------- VARIABLES DE AUDIO ----------
-        let mediaStream = null;
-        let audioContext = null;
-        let analyserNode = null;
-        let isMicActive = false;
-        let pitchDetectionId = null;
-
+        
+        // Calibración
+        const lowNoteDisplay = document.getElementById('lowNoteDisplay');
+        const lowFreqDisplay = document.getElementById('lowFreqDisplay');
+        const highNoteDisplay = document.getElementById('highNoteDisplay');
+        const highFreqDisplay = document.getElementById('highFreqDisplay');
+        const recordLowBtn = document.getElementById('recordLowBtn');
+        const recordHighBtn = document.getElementById('recordHighBtn');
+        const finishCalibrationBtn = document.getElementById('finishCalibrationBtn');
+        const rangeBar = document.getElementById('rangeBar');
+        const minRangeLabel = document.getElementById('minRangeLabel');
+        const maxRangeLabel = document.getElementById('maxRangeLabel');
+        const calibrationResultMsg = document.getElementById('calibrationResultMsg');
+        
         // Variables de calibración
         let calibratedMinFreq = null;
         let calibratedMaxFreq = null;
-        let isCalibrated = false;
-        let calibrationBuffer = [];
-        let isRecording = false;
-        let recordingTimeout = null;
-        let recordingStartTime = 0;
-
-        // Variables del juego
+        let recordedLow = null;
+        let recordedHigh = null;
+        let isMicActive = false;
+        let mediaStream = null;
+        let audioContext = null;
+        let analyserNode = null;
         let currentVoiceFreq = 200;
         let currentVolume = 0;
+        let pitchLoopId = null;
+        
+        // Ejercicios (basados en Titze)
+        const exercises = [
+            { id: 'glissando', name: '🎵 Glisandos', desc: 'Sube y baja la voz suavemente', target: 15 },
+            { id: 'sustained', name: '🎤 Notas sostenidas', desc: 'Mantén cada nota 3 seg', target: 10 },
+            { id: 'scales', name: '🎼 Escalas', desc: 'Do-Re-Mi-Fa-Sol...', target: 12 },
+            { id: 'octave', name: '⬆️ Saltos de octava', desc: 'Grave ↔ Agudo', target: 8 },
+            { id: 'staccato', name: '⚡ Staccato', desc: 'Notas cortas y separadas', target: 10 },
+            { id: 'lipTrill', name: '👄 Vibración de labios', desc: 'Brrrrr...', target: 12 }
+        ];
+        let selectedExercise = exercises[0];
+        let exerciseProgress = 0;
+        let exerciseNotesHit = 0;
+        
+        // Juego
+        let canvas = document.getElementById('gameCanvas');
+        let ctx = canvas.getContext('2d');
+        let bird = { x: 120, y: canvas.height/2, radius: 18 };
+        let obstacles = [];
         let score = 0;
         let collisions = 0;
+        let combo = 0;
+        let maxCombo = 0;
         let gameRunning = true;
-        let bird = { x: 120, y: canvas.height / 2, radius: 18 };
-        let obstacles = [];
-        const OBSTACLE_WIDTH = 55;
-        const GAP_HEIGHT = 130;
         let frameCounter = 0;
         let spawnGap = 85;
         let baseSpeed = 2.2;
-
-        // ---------- DETECCIÓN DE PITCH ----------
+        const OBSTACLE_WIDTH = 55;
+        const GAP_HEIGHT = 130;
+        
+        // Efectos
+        let particles = [];
+        let celebrationTimeout = null;
+        
+        // UI
+        const gameNote = document.getElementById('gameNote');
+        const gameFreq = document.getElementById('gameFreq');
+        const gameScoreSpan = document.getElementById('gameScore');
+        const gameComboSpan = document.getElementById('gameCombo');
+        const gameCollisionsSpan = document.getElementById('gameCollisions');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const comboMessage = document.getElementById('comboMessage');
+        
+        // Medidores ruido
+        function updateNoiseUI(panel) {
+            const noiseFill = document.getElementById(`${panel}NoiseFill`);
+            const noiseStatus = document.getElementById(`${panel}NoiseStatus`);
+            if (!noiseFill) return;
+            let percent = Math.min(100, currentVolume * 200);
+            noiseFill.style.width = percent + '%';
+            if (percent > 60) {
+                noiseFill.classList.add('danger');
+                if (noiseStatus) noiseStatus.innerHTML = '⚠️ Mucho ruido!';
+            } else if (percent > 30) {
+                noiseFill.classList.add('warning');
+                if (noiseStatus) noiseStatus.innerHTML = '🔊 Ruido moderado';
+            } else {
+                noiseFill.classList.remove('warning', 'danger');
+                if (noiseStatus) noiseStatus.innerHTML = '👍 Silencioso';
+            }
+        }
+        
+        // Detección de pitch
         function autoCorrelate(buffer, sampleRate) {
             let size = buffer.length;
-            let maxSamples = Math.floor(size / 2);
-            let bestOffset = -1;
-            let bestCorrelation = 0;
             let rms = 0;
-            
-            for (let i = 0; i < size; i++) {
-                let val = buffer[i];
-                rms += val * val;
-            }
+            for (let i = 0; i < size; i++) rms += buffer[i] * buffer[i];
             rms = Math.sqrt(rms / size);
-            
             if (rms < 0.01) return null;
             
             let minOffset = Math.floor(sampleRate / 550);
             let maxOffset = Math.floor(sampleRate / 75);
+            let bestOffset = -1, bestCorr = 0;
             
-            for (let offset = minOffset; offset <= maxOffset && offset < maxSamples; offset++) {
-                let correlation = 0;
-                for (let i = 0; i < maxSamples - offset; i++) {
-                    correlation += Math.abs(buffer[i] - buffer[i + offset]);
-                }
-                correlation = 1 - (correlation / (maxSamples - offset));
-                
-                if (correlation > bestCorrelation && correlation > 0.3) {
-                    bestCorrelation = correlation;
-                    bestOffset = offset;
-                }
+            for (let offset = minOffset; offset <= maxOffset && offset < size/2; offset++) {
+                let corr = 0;
+                for (let i = 0; i < size/2 - offset; i++) corr += Math.abs(buffer[i] - buffer[i + offset]);
+                corr = 1 - (corr / (size/2 - offset));
+                if (corr > bestCorr && corr > 0.3) { bestCorr = corr; bestOffset = offset; }
             }
-            
             if (bestOffset > 0) {
-                let frequency = sampleRate / bestOffset;
-                if (frequency >= 75 && frequency <= 600) {
-                    return frequency;
-                }
+                let freq = sampleRate / bestOffset;
+                if (freq >= 70 && freq <= 600) return freq;
             }
             return null;
         }
-
-        // ---------- INICIAR MICRÓFONO ----------
+        
         async function initMicrophone() {
             try {
-                if (mediaStream) {
-                    mediaStream.getTracks().forEach(track => track.stop());
-                }
-                if (audioContext) {
-                    await audioContext.close();
-                }
-                if (pitchDetectionId) {
-                    cancelAnimationFrame(pitchDetectionId);
-                }
-
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: {
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        autoGainControl: false
-                    } 
-                });
-                
+                if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+                if (audioContext) await audioContext.close();
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } });
                 mediaStream = stream;
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyserNode = audioContext.createAnalyser();
                 analyserNode.fftSize = 4096;
-                analyserNode.smoothingTimeConstant = 0.7;
-                
-                const sourceNode = audioContext.createMediaStreamSource(stream);
-                sourceNode.connect(analyserNode);
-                
-                if (audioContext.state === 'suspended') {
-                    await audioContext.resume();
-                }
-                
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyserNode);
+                if (audioContext.state === 'suspended') await audioContext.resume();
                 isMicActive = true;
                 startPitchDetection();
                 return true;
-                
-            } catch (error) {
-                console.error('Error:', error);
-                isMicActive = false;
-                return false;
-            }
+            } catch(e) { console.error(e); isMicActive = false; return false; }
         }
-
+        
         function startPitchDetection() {
-            const bufferLength = analyserNode.fftSize;
-            const dataArray = new Float32Array(bufferLength);
-            
-            function detectLoop() {
-                if (!isMicActive || !analyserNode || !audioContext) {
-                    pitchDetectionId = requestAnimationFrame(detectLoop);
-                    return;
-                }
-                
-                analyserNode.getFloatTimeDomainData(dataArray);
-                
+            const buffer = new Float32Array(analyserNode.fftSize);
+            function detect() {
+                if (!isMicActive || !analyserNode) { pitchLoopId = requestAnimationFrame(detect); return; }
+                analyserNode.getFloatTimeDomainData(buffer);
                 let sum = 0;
-                for (let i = 0; i < bufferLength; i++) {
-                    sum += dataArray[i] * dataArray[i];
-                }
-                let rms = Math.sqrt(sum / bufferLength);
-                currentVolume = Math.min(1, rms * 5);
-                
-                if (rms > 0.015) {
-                    const frequency = autoCorrelate(dataArray, audioContext.sampleRate);
-                    if (frequency !== null && frequency > 70 && frequency < 600) {
-                        currentVoiceFreq = frequency;
-                    }
-                }
+                for (let i = 0; i < buffer.length; i++) sum += buffer[i] * buffer[i];
+                currentVolume = Math.min(1, Math.sqrt(sum / buffer.length) * 5);
+                let freq = autoCorrelate(buffer, audioContext.sampleRate);
+                if (freq && currentVolume > 0.015) currentVoiceFreq = freq;
                 
                 // Actualizar UI según panel activo
-                updateUI();
-                
-                // Si estamos grabando para calibración, recolectar datos
-                if (isRecording && currentVolume > 0.03 && currentVoiceFreq) {
-                    collectCalibrationSample(currentVoiceFreq);
+                if (calibrationPanel.classList.contains('active')) updateNoiseUI('cal');
+                if (exercisesPanel.classList.contains('active')) updateNoiseUI('ex');
+                if (gamePanel.classList.contains('active')) {
+                    updateNoiseUI('game');
+                    if (calibratedMinFreq && calibratedMaxFreq) {
+                        gameFreq.innerText = Math.floor(currentVoiceFreq) + ' Hz';
+                        gameNote.innerText = freqToNote(currentVoiceFreq);
+                        updateBirdByVoice();
+                    }
                 }
-                
-                pitchDetectionId = requestAnimationFrame(detectLoop);
+                pitchLoopId = requestAnimationFrame(detect);
             }
-            
-            detectLoop();
+            detect();
         }
-
-        function updateUI() {
-            const isCalibrationActive = calibrationPanel.classList.contains('active');
-            
-            if (isCalibrationActive) {
-                calVolumeFill.style.width = (currentVolume * 100) + '%';
-                if (isMicActive && currentVolume > 0.02) {
-                    calFreqDisplay.innerHTML = Math.floor(currentVoiceFreq) + " Hz";
-                    calNoteDisplay.innerHTML = freqToNote(currentVoiceFreq);
-                }
-            } else {
-                gameVolumeFill.style.width = (currentVolume * 100) + '%';
-                if (isMicActive && isCalibrated) {
-                    freqLabel.innerHTML = Math.floor(currentVoiceFreq) + " Hz";
-                    noteLabel.innerHTML = freqToNote(currentVoiceFreq);
-                    updateBirdYFromFreq(currentVoiceFreq);
-                }
-            }
-        }
-
+        
         function freqToNote(freq) {
-            if (!freq || freq < 70) return "---";
-            const notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-            let A4 = 440;
-            let C0 = A4 * Math.pow(2, -4.75);
+            if (!freq || freq < 70) return '---';
+            const notes = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+            let A4 = 440, C0 = A4 * Math.pow(2, -4.75);
             let halfSteps = Math.round(12 * Math.log2(freq / C0));
             let octave = Math.floor(halfSteps / 12);
             let noteIndex = ((halfSteps % 12) + 12) % 12;
             return notes[noteIndex] + octave;
         }
-
-        // ---------- CALIBRACIÓN ----------
-        async function startCalibration() {
-            if (!isMicActive) {
-                const success = await initMicrophone();
-                if (!success) {
-                    alert("No se pudo acceder al micrófono. Verifica los permisos.");
-                    return;
-                }
-                updateCalMicUI(true);
-            }
-            
-            calibrationReading.style.display = "block";
-            calibrateBtn.disabled = false;
-            calibrationStatusMsg.className = "status-msg waiting";
-            calibrationStatusMsg.innerHTML = "🎵 Haz clic en 'CALIBRAR' y canta una nota constante";
-            calibrationResultDiv.innerHTML = "";
-        }
-
-        function updateCalMicUI(active) {
-            if (active) {
-                calMicDot.classList.add('active');
-                calMicText.innerHTML = '🎙️ Micrófono ACTIVO';
-                startMicCalBtn.disabled = true;
-                startMicCalBtn.textContent = '✅ MICRÓFONO ACTIVO';
-            } else {
-                calMicDot.classList.remove('active');
-                calMicText.innerHTML = '🔴 Micrófono DESACTIVADO';
-                startMicCalBtn.disabled = false;
-                startMicCalBtn.textContent = '🎤 INICIAR MICRÓFONO';
-            }
-        }
-
-        function startRecording() {
-            if (!isMicActive) {
-                calibrationStatusMsg.className = "status-msg error";
-                calibrationStatusMsg.innerHTML = "❌ Activa el micrófono primero";
-                return;
-            }
-            
-            if (currentVolume < 0.03) {
-                calibrationStatusMsg.className = "status-msg error";
-                calibrationStatusMsg.innerHTML = "❌ No detecto tu voz. ¡Canta más fuerte!";
-                setTimeout(() => {
-                    if (!isRecording) {
-                        calibrationStatusMsg.className = "status-msg waiting";
-                        calibrationStatusMsg.innerHTML = "🎵 Haz clic en 'CALIBRAR' y canta una nota constante";
-                    }
-                }, 2000);
-                return;
-            }
-            
-            // Iniciar grabación
-            calibrationBuffer = [];
-            isRecording = true;
-            recordingStartTime = Date.now();
-            
-            calibrationStatusMsg.className = "status-msg recording";
-            calibrationStatusMsg.innerHTML = "🔴 Grabando... ¡Mantén la nota!";
-            
-            // Configurar timer de 2 segundos
-            if (recordingTimeout) clearTimeout(recordingTimeout);
-            
-            const interval = setInterval(() => {
-                if (!isRecording) {
-                    clearInterval(interval);
-                    return;
-                }
-                const elapsed = (Date.now() - recordingStartTime) / 1000;
-                const remaining = Math.max(0, 2 - elapsed);
-                timerText.textContent = remaining.toFixed(1);
-                
-                const circumference = 327;
-                const progress = (elapsed / 2) * circumference;
-                timerCircle.setAttribute('stroke-dashoffset', circumference - Math.min(circumference, progress));
-                
-                if (elapsed >= 2) {
-                    clearInterval(interval);
-                    finalizeCalibration();
-                }
-            }, 50);
-            
-            recordingTimeout = setTimeout(() => {
-                if (isRecording) {
-                    finalizeCalibration();
-                }
-            }, 2100);
-        }
-
-        function collectCalibrationSample(freq) {
-            if (isRecording) {
-                calibrationBuffer.push(freq);
-            }
-        }
-
-        function finalizeCalibration() {
-            if (recordingTimeout) clearTimeout(recordingTimeout);
-            
-            if (!isRecording) return;
-            isRecording = false;
-            
-            if (calibrationBuffer.length < 20) {
-                calibrationStatusMsg.className = "status-msg error";
-                calibrationStatusMsg.innerHTML = "❌ No se detectó suficiente voz. Intenta cantar más fuerte y constante.";
-                timerText.textContent = "0.0";
-                timerCircle.setAttribute('stroke-dashoffset', 327);
-                return;
-            }
-            
-            // Calcular estadísticas
-            let sorted = [...calibrationBuffer].sort((a, b) => a - b);
-            let min = sorted[Math.floor(sorted.length * 0.1)];
-            let max = sorted[Math.floor(sorted.length * 0.9)];
-            let avg = calibrationBuffer.reduce((a, b) => a + b, 0) / calibrationBuffer.length;
-            
-            // Establecer rango calibrado
-            calibratedMinFreq = Math.max(75, min - 15);
-            calibratedMaxFreq = Math.min(600, max + 25);
-            
+        
+        // Calibración
+        let recordingMode = null;
+        recordLowBtn.onclick = async () => {
+            if (!isMicActive) await initMicrophone();
+            if (currentVolume < 0.03) { showToast('🎤 Canta más fuerte para grabar', 1500); return; }
+            recordedLow = currentVoiceFreq;
+            lowFreqDisplay.innerText = Math.floor(recordedLow) + ' Hz';
+            lowNoteDisplay.innerText = freqToNote(recordedLow);
+            showToast('✅ Nota grave grabada', 1000);
+        };
+        recordHighBtn.onclick = async () => {
+            if (!isMicActive) await initMicrophone();
+            if (currentVolume < 0.03) { showToast('🎤 Canta más fuerte para grabar', 1500); return; }
+            recordedHigh = currentVoiceFreq;
+            highFreqDisplay.innerText = Math.floor(recordedHigh) + ' Hz';
+            highNoteDisplay.innerText = freqToNote(recordedHigh);
+            showToast('✅ Nota aguda grabada', 1000);
+        };
+        
+        function finishCalibration() {
+            if (!recordedLow || !recordedHigh) { showToast('Graba ambas notas (grave y aguda)', 2000); return; }
+            calibratedMinFreq = Math.max(70, recordedLow - 15);
+            calibratedMaxFreq = Math.min(600, recordedHigh + 15);
             if (calibratedMaxFreq - calibratedMinFreq < 40) {
-                calibratedMinFreq = Math.max(75, avg - 35);
-                calibratedMaxFreq = Math.min(600, avg + 45);
+                calibratedMinFreq = recordedLow - 20;
+                calibratedMaxFreq = recordedHigh + 20;
             }
-            
-            isCalibrated = true;
-            
-            calibrationStatusMsg.className = "status-msg success";
-            calibrationStatusMsg.innerHTML = "✅ ¡Calibración completada!";
-            
-            calibrationResultDiv.innerHTML = `
-                <div class="calibration-success">
-                    ✅ ¡CALIBRACIÓN EXITOSA!<br>
-                    Rango grave: ${Math.floor(calibratedMinFreq)} Hz<br>
-                    Rango agudo: ${Math.floor(calibratedMaxFreq)} Hz<br>
-                    Nota media: ${freqToNote(avg)} (${Math.floor(avg)} Hz)<br><br>
-                    <strong>🎮 ¡Ya puedes pasar a JUGAR!</strong>
-                </div>
-            `;
-            
-            calibrateBtn.disabled = true;
-            calibrateBtn.textContent = '✅ CALIBRADO';
-            
-            // Habilitar pestaña de juego
-            tabPlayBtn.disabled = false;
-            
-            // Guardar calibración
+            minRangeLabel.innerText = Math.floor(calibratedMinFreq) + ' Hz';
+            maxRangeLabel.innerText = Math.floor(calibratedMaxFreq) + ' Hz';
+            let rangePercent = ((calibratedMaxFreq - calibratedMinFreq) / 500) * 100;
+            rangeBar.style.width = Math.min(100, rangePercent) + '%';
+            calibrationResultMsg.innerHTML = '✅ Calibración exitosa! Puedes pasar a EJERCICIOS';
+            finishCalibrationBtn.disabled = true;
+            navExercises.disabled = false;
+            // Guardar en localStorage
             localStorage.setItem('voiceMin', calibratedMinFreq);
             localStorage.setItem('voiceMax', calibratedMaxFreq);
         }
-
-        // ---------- FUNCIONES DEL JUEGO ----------
-        function updateBirdYFromFreq(freq) {
-            if (!isCalibrated || !calibratedMinFreq || !calibratedMaxFreq) return;
-            
-            let t = (freq - calibratedMinFreq) / (calibratedMaxFreq - calibratedMinFreq);
+        finishCalibrationBtn.onclick = finishCalibration;
+        
+        function updateBirdByVoice() {
+            if (!calibratedMinFreq || !calibratedMaxFreq) return;
+            let t = (currentVoiceFreq - calibratedMinFreq) / (calibratedMaxFreq - calibratedMinFreq);
             t = Math.min(1, Math.max(0, t));
-            
             let minY = canvas.height - bird.radius - 20;
             let maxY = bird.radius + 20;
             let targetY = maxY + (1 - t) * (minY - maxY);
-            
             bird.y = bird.y * 0.7 + targetY * 0.3;
             bird.y = Math.min(canvas.height - bird.radius - 5, Math.max(bird.radius + 5, bird.y));
         }
-
-        function generateObstacle() {
-            let minGapY = 70;
-            let maxGapY = canvas.height - GAP_HEIGHT - 70;
-            let gapY = Math.floor(Math.random() * (maxGapY - minGapY + 1) + minGapY);
-            obstacles.push({
-                x: canvas.width,
-                width: OBSTACLE_WIDTH,
-                gapY: gapY,
-                gapHeight: GAP_HEIGHT,
-                counted: false
-            });
+        
+        // Efecto partículas
+        function createParticles(x, y, color) {
+            for(let i=0;i<12;i++) {
+                let p = { x: x, y: y, vx: (Math.random() - 0.5)*6, vy: (Math.random() - 0.5)*6 - 2, life: 1, color: color };
+                particles.push(p);
+            }
         }
-
+        
+        function showComboEffect() {
+            comboMessage.innerHTML = `🔥 COMBO x${combo}! 🔥`;
+            setTimeout(() => { if(comboMessage.innerHTML.includes('COMBO')) comboMessage.innerHTML = ''; }, 800);
+            if(navigator.vibrate) navigator.vibrate(50);
+            createParticles(bird.x, bird.y, '#ffd966');
+        }
+        
+        // Penalización suave
         function handleCollision() {
-            if (!gameRunning) return;
             collisions++;
-            bird.y = Math.min(canvas.height - bird.radius - 8, bird.y + 15);
-            if (score > 0) score = Math.max(0, score - 2);
-            updateGameUI();
+            combo = 0;
+            gameComboSpan.innerText = '0x';
+            bird.y = Math.min(canvas.height - bird.radius - 8, bird.y + 20);
+            if(score > 0) score = Math.max(0, score - 2);
+            gameScoreSpan.innerText = score;
+            gameCollisionsSpan.innerText = collisions;
+            showToast('🤕 ¡Casi! Ajusta el tono de tu voz', 800);
+            if(navigator.vibrate) navigator.vibrate(80);
+            if(collisions >= 3) showToast('💡 Sugerencia: tómate un descanso de 30 segundos', 2000);
         }
-
+        
         function updateGameUI() {
-            scoreLabel.innerHTML = score;
-            collisionLabel.innerHTML = collisions;
-        }
-
-        function resetGame() {
-            score = 0;
-            collisions = 0;
-            obstacles = [];
-            frameCounter = 0;
-            gameRunning = true;
-            bird.y = canvas.height / 2;
-            updateGameUI();
-            for (let i = 0; i < 2; i++) {
-                generateObstacle();
+            gameScoreSpan.innerText = score;
+            gameCollisionsSpan.innerText = collisions;
+            gameComboSpan.innerText = combo + 'x';
+            let targetProgress = (exerciseNotesHit / selectedExercise.target) * 100;
+            progressBar.style.width = Math.min(100, targetProgress) + '%';
+            progressText.innerText = `${exerciseNotesHit}/${selectedExercise.target} notas`;
+            if(exerciseNotesHit >= selectedExercise.target) {
+                showToast('🎉 ¡Ejercicio completado! 🎉', 3000);
+                createParticles(canvas.width/2, canvas.height/2, '#ffd966');
+                if(navigator.vibrate) navigator.vibrate([200,100,200]);
+                exerciseNotesHit = 0;
+                score += 50;
+                updateGameUI();
             }
         }
-
+        
+        function generateObstacle() {
+            let minGap = 70, maxGap = canvas.height - GAP_HEIGHT - 70;
+            let gapY = Math.floor(Math.random() * (maxGap - minGap + 1) + minGap);
+            obstacles.push({ x: canvas.width, width: OBSTACLE_WIDTH, gapY: gapY, gapHeight: GAP_HEIGHT, counted: false });
+        }
+        
         function updateGame() {
-            if (!gameRunning || !isCalibrated) return;
-
-            for (let i = 0; i < obstacles.length; i++) {
-                obstacles[i].x -= baseSpeed;
-            }
-            obstacles = obstacles.filter(obs => obs.x + OBSTACLE_WIDTH > 0);
-
-            const birdLeft = bird.x - bird.radius;
-            const birdRight = bird.x + bird.radius;
-            const birdTop = bird.y - bird.radius;
-            const birdBottom = bird.y + bird.radius;
-
-            for (let obs of obstacles) {
-                const obsLeft = obs.x;
-                const obsRight = obs.x + OBSTACLE_WIDTH;
-                
-                if (birdRight > obsLeft && birdLeft < obsRight) {
-                    const gapTop = obs.gapY;
-                    const gapBottom = obs.gapY + GAP_HEIGHT;
-                    
-                    if (birdBottom < gapTop || birdTop > gapBottom) {
-                        handleCollision();
-                    } else if (!obs.counted) {
+            if(!gameRunning) return;
+            for(let i=0;i<obstacles.length;i++) obstacles[i].x -= baseSpeed;
+            obstacles = obstacles.filter(o => o.x + OBSTACLE_WIDTH > 0);
+            
+            let birdL = bird.x - bird.radius, birdR = bird.x + bird.radius, birdT = bird.y - bird.radius, birdB = bird.y + bird.radius;
+            for(let obs of obstacles) {
+                if(birdR > obs.x && birdL < obs.x + OBSTACLE_WIDTH) {
+                    if(birdB < obs.gapY || birdT > obs.gapY + GAP_HEIGHT) handleCollision();
+                    else if(!obs.counted) {
                         obs.counted = true;
                         score += 10;
+                        combo++;
+                        exerciseNotesHit++;
+                        if(combo > maxCombo) maxCombo = combo;
                         updateGameUI();
+                        showComboEffect();
+                        createParticles(bird.x + 20, bird.y, '#4caf50');
+                        if(combo % 3 === 0) showToast(`🔥 Racha de ${combo}!`, 600);
                     }
                 }
             }
-
-            if (bird.y - bird.radius <= 5) {
-                bird.y = bird.radius + 5;
-                handleCollision();
-            }
-            if (bird.y + bird.radius >= canvas.height - 5) {
-                bird.y = canvas.height - bird.radius - 5;
-                handleCollision();
-            }
-
+            if(bird.y - bird.radius <= 5 || bird.y + bird.radius >= canvas.height - 5) handleCollision();
+            
             frameCounter++;
-            if (frameCounter >= spawnGap) {
+            if(frameCounter >= spawnGap) {
                 frameCounter = 0;
                 generateObstacle();
                 baseSpeed = 2.2 + Math.floor(score / 400);
                 baseSpeed = Math.min(baseSpeed, 4.5);
             }
         }
-
+        
         function drawGame() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            grad.addColorStop(0, "#b2e0fa");
-            grad.addColorStop(1, "#7ec8e0");
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            for (let obs of obstacles) {
-                ctx.fillStyle = "#8b5a2bcc";
-                ctx.fillRect(obs.x, 0, OBSTACLE_WIDTH, obs.gapY);
-                ctx.fillRect(obs.x, obs.gapY + GAP_HEIGHT, OBSTACLE_WIDTH, canvas.height - (obs.gapY + GAP_HEIGHT));
-                ctx.fillStyle = "#c97e3ad9";
-                ctx.fillRect(obs.x + 5, obs.gapY - 8, OBSTACLE_WIDTH - 10, 10);
-                ctx.fillRect(obs.x + 5, obs.gapY + GAP_HEIGHT - 4, OBSTACLE_WIDTH - 10, 10);
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            let grad = ctx.createLinearGradient(0,0,0,canvas.height);
+            grad.addColorStop(0,'#b2e0fa'); grad.addColorStop(1,'#7ec8e0');
+            ctx.fillStyle=grad; ctx.fillRect(0,0,canvas.width,canvas.height);
+            for(let obs of obstacles) {
+                ctx.fillStyle='#8b5a2bcc';
+                ctx.fillRect(obs.x,0,OBSTACLE_WIDTH,obs.gapY);
+                ctx.fillRect(obs.x,obs.gapY+GAP_HEIGHT,OBSTACLE_WIDTH,canvas.height-(obs.gapY+GAP_HEIGHT));
             }
-
-            ctx.shadowBlur = 6;
-            ctx.shadowColor = "rgba(0,0,0,0.3)";
-            ctx.beginPath();
-            ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
-            ctx.fillStyle = "#FFB347";
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(bird.x - 6, bird.y - 5, 4, 0, Math.PI * 2);
-            ctx.fillStyle = "white";
-            ctx.fill();
-            ctx.fillStyle = "#1e2a2e";
-            ctx.beginPath();
-            ctx.arc(bird.x - 8, bird.y - 6, 2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "#d94f30";
-            ctx.beginPath();
-            ctx.moveTo(bird.x + 12, bird.y);
-            ctx.lineTo(bird.x + 22, bird.y - 5);
-            ctx.lineTo(bird.x + 22, bird.y + 5);
-            ctx.fill();
-            
-            ctx.font = "bold 22px 'Segoe UI'";
-            ctx.fillStyle = "#2d2f36";
-            ctx.fillText("🎵", bird.x - 14, bird.y - 14);
-
-            ctx.shadowBlur = 0;
-            ctx.font = "bold 20px system-ui";
-            ctx.fillStyle = "#1e2f3a";
-            ctx.fillText("🎤 FLAPPY VOICE", 20, 45);
-            
-            if (calibratedMinFreq && calibratedMaxFreq) {
-                ctx.font = "10px monospace";
-                ctx.fillStyle = "#2c4a55";
-                ctx.fillText(`Rango: ${Math.floor(calibratedMinFreq)}-${Math.floor(calibratedMaxFreq)} Hz`, 20, 75);
+            ctx.shadowBlur=6;
+            ctx.beginPath(); ctx.arc(bird.x,bird.y,bird.radius,0,Math.PI*2);
+            ctx.fillStyle='#FFB347'; ctx.fill();
+            ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(bird.x-6,bird.y-5,4,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle='#1e2a2e'; ctx.beginPath(); ctx.arc(bird.x-8,bird.y-6,2,0,Math.PI*2); ctx.fill();
+            ctx.shadowBlur=0;
+            ctx.font='bold 18px system-ui'; ctx.fillStyle='#1e2f3a'; ctx.fillText(`🎵 ${selectedExercise.name}`,20,45);
+        }
+        
+        function animateParticles() {
+            for(let i=particles.length-1;i>=0;i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+                if(p.life <=0) { particles.splice(i,1); continue; }
+                ctx.beginPath(); ctx.arc(p.x,p.y,4*p.life,0,Math.PI*2);
+                ctx.fillStyle = p.color; ctx.fill();
             }
         }
-
+        
         function gameLoop() {
-            if (gamePanel.classList.contains('active') && isCalibrated) {
-                updateGame();
-            }
-            if (gamePanel.classList.contains('active')) {
-                drawGame();
-            }
+            if(gamePanel.classList.contains('active')) updateGame();
+            drawGame();
+            animateParticles();
             requestAnimationFrame(gameLoop);
         }
-
-        // ---------- NAVEGACIÓN ----------
-        function switchToCalibration() {
+        
+        function resetGame() {
+            score = 0; collisions = 0; combo = 0; exerciseNotesHit = 0;
+            obstacles = []; frameCounter = 0; bird.y = canvas.height/2;
+            updateGameUI();
+            for(let i=0;i<2;i++) generateObstacle();
+        }
+        
+        // Navegación
+        function showToast(msg, duration=1500) {
+            let t = document.createElement('div'); t.className='toast'; t.innerText=msg;
+            document.body.appendChild(t);
+            setTimeout(()=>t.remove(),duration);
+        }
+        
+        function loadExercises() {
+            const grid = document.getElementById('exercisesGrid');
+            grid.innerHTML = '';
+            exercises.forEach(ex => {
+                let div = document.createElement('div'); div.className='exercise-card';
+                if(selectedExercise.id === ex.id) div.classList.add('selected');
+                div.innerHTML = `<h4>${ex.name}</h4><p>${ex.desc}</p>`;
+                div.onclick = () => {
+                    document.querySelectorAll('.exercise-card').forEach(c => c.classList.remove('selected'));
+                    div.classList.add('selected');
+                    selectedExercise = ex;
+                    document.getElementById('startGameBtn').disabled = false;
+                };
+                grid.appendChild(div);
+            });
+        }
+        
+        navCalibrate.onclick = () => {
             calibrationPanel.classList.add('active');
+            exercisesPanel.classList.remove('active');
             gamePanel.classList.remove('active');
-            tabCalibrateBtn.classList.add('active');
-            tabPlayBtn.classList.remove('active');
-        }
-
-        function switchToGame() {
-            if (!isCalibrated) {
-                alert("⚠️ Primero debes calibrar tu voz.\n\n1. Ve a la pestaña CALIBRACIÓN\n2. Inicia el micrófono\n3. Haz clic en CALIBRAR y canta una nota durante 2 segundos");
-                return;
-            }
-            
+            navCalibrate.classList.add('active');
+            navExercises.classList.remove('active');
+            navGame.classList.remove('active');
+        };
+        navExercises.onclick = () => {
+            if(!calibratedMinFreq) { showToast('Primero completa la calibración',1500); return; }
             calibrationPanel.classList.remove('active');
+            exercisesPanel.classList.add('active');
+            gamePanel.classList.remove('active');
+            navCalibrate.classList.remove('active');
+            navExercises.classList.add('active');
+            navGame.classList.remove('active');
+            loadExercises();
+        };
+        navGame.onclick = () => {
+            if(!calibratedMinFreq) { showToast('Primero completa la calibración',1500); return; }
+            calibrationPanel.classList.remove('active');
+            exercisesPanel.classList.remove('active');
             gamePanel.classList.add('active');
-            tabCalibrateBtn.classList.remove('active');
-            tabPlayBtn.classList.add('active');
-            
+            navCalibrate.classList.remove('active');
+            navExercises.classList.remove('active');
+            navGame.classList.add('active');
             resetGame();
+        };
+        
+        document.getElementById('startGameBtn').onclick = () => { navGame.click(); };
+        document.getElementById('resetGameBtn').onclick = () => resetGame();
+        document.getElementById('recalibrateFromGameBtn').onclick = () => { calibratedMinFreq=null; calibratedMaxFreq=null; navCalibrate.click(); };
+        document.getElementById('changeExerciseBtn').onclick = () => { navExercises.click(); };
+        
+        // Cargar calibración guardada
+        let savedMin = localStorage.getItem('voiceMin');
+        let savedMax = localStorage.getItem('voiceMax');
+        if(savedMin && savedMax) {
+            calibratedMinFreq = parseFloat(savedMin);
+            calibratedMaxFreq = parseFloat(savedMax);
+            finishCalibrationBtn.disabled = true;
+            navExercises.disabled = false;
+            calibrationResultMsg.innerHTML = '✅ Calibración cargada!';
         }
-
-        function recalibrate() {
-            isCalibrated = false;
-            calibratedMinFreq = null;
-            calibratedMaxFreq = null;
-            tabPlayBtn.disabled = true;
-            calibrationResultDiv.innerHTML = "";
-            calibrationReading.style.display = "none";
-            calibrateBtn.disabled = true;
-            calibrateBtn.textContent = "🎚️ CALIBRAR (canta una nota)";
-            calibrationStatusMsg.className = "status-msg waiting";
-            calibrationStatusMsg.innerHTML = "🎵 Haz clic en 'CALIBRAR' y canta una nota constante";
-            timerText.textContent = "0.0";
-            timerCircle.setAttribute('stroke-dashoffset', 327);
-            switchToCalibration();
-            
-            if (isMicActive) {
-                calibrateBtn.disabled = false;
-                calibrationReading.style.display = "block";
-            }
-        }
-
-        // ---------- EVENTOS ----------
-        startMicCalBtn.addEventListener('click', startCalibration);
-        calibrateBtn.addEventListener('click', startRecording);
-        tabCalibrateBtn.addEventListener('click', switchToCalibration);
-        tabPlayBtn.addEventListener('click', switchToGame);
-        resetGameBtn.addEventListener('click', resetGame);
-        recalibrateBtn.addEventListener('click', recalibrate);
-
-        // ---------- INICIALIZACIÓN ----------
-        resetGame();
+        
+        initMicrophone();
         gameLoop();
     })();
 </script>
 </body>
-</html>/html>
+</html>
